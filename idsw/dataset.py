@@ -8,19 +8,20 @@
 import os
 import configparser
 import pandas as pd
+from pathlib2 import Path
 
 
 class Dataset:
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read("idsw-notebook.conf", encoding="utf-8")
+        config.read(Path(os.path.realpath(__file__)).parent / "idsw-notebook.conf", encoding="utf-8")
         storage_type = os.getenv("storage_type")
         self.connection = None
         if storage_type.lower() == "hdfs":
-            import ihdfs
+            from . import ihdfs
             self.connection = ihdfs.HDFSConnection()
         elif storage_type.lower() == "mysql":
-            import imysql
+            from . import imysql
             self.connection = imysql.MySQLConnection()
 
     def read_csv(self, path):

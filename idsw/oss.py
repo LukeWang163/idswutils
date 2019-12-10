@@ -115,7 +115,7 @@ class OSS:
         :return:
         '''
         tmp_model_name = str(uuid.uuid1()) + '.pkl'
-        from sklearn.externals import joblib
+        import joblib
         joblib.dump(model, tmp_model_name)
         try:
             self.upload_local_file(remote_file, tmp_model_name)

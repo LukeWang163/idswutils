@@ -9,7 +9,7 @@ import hdfs3
 from . import utils
 from . import connection
 import configparser
-from pathlib import Path
+from pathlib2 import Path
 import datetime
 
 
@@ -75,7 +75,7 @@ class HDFSConnection(connection.Connection):
             with self.connection.open(dst, "wb") as writer:
                 df.to_csv(writer, index=False, encoding='utf-8')
 
-            import imysql
+            from . import imysql
             mysql_connection = imysql.MySQLConnection().connection
             dataset_id = utils.generate_uuid()
             resource_dir_id = utils.generate_uuid()
@@ -106,17 +106,23 @@ class HDFSConnection(connection.Connection):
                                                         self.user_id, current_time, current_time, current_time,
                                                         current_time, "", self.user_id])
                             mysql_connection.commit()
+                            return "success"
                     except Exception as e:
                         print(e)
+                        return None
+                else:
+                    return None
             except Exception as e:
                 print(e)
+                return None
         except Exception as e:
             print(e)
+            return None
 
     def open_model(self, path):
         model_path = str(Path(path) / "data")
         meta_path = str(Path(path) / "metadata")
-        from sklearn.externals import joblib
+        import joblib
         model = None
         meta = None
         with self.connection.open(model_path, "rb") as model_reader:
@@ -139,7 +145,7 @@ class HDFSConnection(connection.Connection):
         parent_dir = str(Path(dst).parent)
         if not self.connection.exists(parent_dir):
             self.connection.makedirs(parent_dir)
-        from sklearn.externals import joblib
+        import joblib
         import json
         with self.connection.open(dst + "/" + "data", "wb") as writer:
             joblib.dump(model, writer)
@@ -176,7 +182,12 @@ class HDFSConnection(connection.Connection):
                                                     self.user_id, current_time, current_time, current_time,
                                                     current_time, "", self.user_id])
                         mysql_connection.commit()
+                        return "sucess"
                 except Exception as e:
                     print(e)
+                    return None
+            else:
+                return None
         except Exception as e:
             print(e)
+            return None

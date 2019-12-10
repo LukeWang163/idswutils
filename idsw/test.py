@@ -7,7 +7,7 @@
 from . import dataset
 from . import model
 import os
-os.environ["storage_type"] = "hdfs"
+os.environ["storage_type"] = "mysql"
 os.environ["user_id"] = "superadmin"
 os.environ["workspace_id"] = "a"
 
@@ -23,17 +23,20 @@ def test_write_data():
     idataset = dataset.Dataset()
     idataset.save_dataset(df, "test_save2.csv")
 
+
 def test_write_model():
     from sklearn.linear_model import LogisticRegression
     import pandas as pd
-    df = pd.read_csv("/Users/petra/Downloads/data/Iris.csv")
-    X = df.drop("species", axis=1)
-    y =
+    df = pd.read_csv("E:\\KDD99\\Iris.csv") # /Users/petra/Downloads/data/Iris.csv")
+    X = df.drop("Species", axis=1)
+    y = df["Species"]
     clf = LogisticRegression(random_state=0).fit(X, y)
     import pandas as pd
     imodel = model.Model()
-    imodel.save_model(pd.DataFrame)
+    imodel.save_model(X, clf, "test_model")
+
 
 if __name__ == "__main__":
     # test_read_data()
-    test_write_data()
+    # test_write_data()
+    test_write_model()

@@ -6,8 +6,8 @@
 # @Desc    : hdfs connection
 import os
 import hdfs3
-import utils
-import connection
+from . import utils
+from . import connection
 import configparser
 from pathlib import Path
 import datetime
@@ -36,7 +36,8 @@ class HDFSConnection(connection.Connection):
                     user = self.config.get("hdfs", "HDFS_USER")
                 connection = hdfs3.HDFileSystem(host=host, user=user)
         else:
-            port = self.config.getint("hdfs", "HDFS_PORT")
+            if port is None:
+                port = self.config.getint("hdfs", "HDFS_PORT")
             if kerberos:
                 connection = hdfs3.HDFileSystem(host=host, port=port,
                                                      pars={"hadoop.security.authentication": "kerberos"})
@@ -76,17 +77,18 @@ class HDFSConnection(connection.Connection):
 
             import imysql
             mysql_connection = imysql.MySQLConnection().connection
-            resource_id = utils.generate_uuid()
+            dataset_id = utils.generate_uuid()
+            resource_dir_id = utils.generate_uuid()
             insert_dataset_statement = """
-                        INSERT INTO ABC_DATASET (DATASET_ID,WORKSPACE_ID,USER_ID,DATASET_NAME,DATA_DESC,DATASET_TYPE,DATASET_SIZE,DATASET_PATH,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME)
-                        values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                        INSERT INTO ABC_DATASET (DATASET_ID,WORKSPACE_ID,USER_ID,DATASET_NAME,DATA_DESC,DATASET_TYPE,DATASET_SIZE,DATASET_PATH,RESOURCE_DIR_ID,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME)
+                        values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                         """
             try:
                 with mysql_connection.cursor() as cursor:
                     current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     row_count = cursor.execute(insert_dataset_statement,
-                                               [resource_id, self.workspace_id, self.user_id, dataset_name, "", "csv",
-                                                dataset_size, dst, "1", self.user_id, self.user_id,
+                                               [dataset_id, self.workspace_id, self.user_id, dataset_name, "", "csv",
+                                                dataset_size, dst, resource_dir_id, "1", self.user_id, self.user_id,
                                                 current_time,
                                                 current_time, current_time, current_time])
                 mysql_connection.commit()
@@ -99,8 +101,8 @@ class HDFSConnection(connection.Connection):
                         with mysql_connection.cursor() as cursor:
                             current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                             row_count = cursor.execute(insert_resource_dir_statement,
-                                                       [utils.generate_uuid(), self.workspace_id, dataset_name, 1, "-1",
-                                                        "1", "1", resource_id, "1", "1", "1", "1", self.user_id,
+                                                       [resource_dir_id, self.workspace_id, dataset_name, 1, "-1",
+                                                        "1", "1", dataset_id, "1", "1", "1", "1", self.user_id,
                                                         self.user_id, current_time, current_time, current_time,
                                                         current_time, "", self.user_id])
                             mysql_connection.commit()
@@ -134,4 +136,47 @@ class HDFSConnection(connection.Connection):
     def upload_model(self, df, model, model_name):
         meta = self._form_model_meta(df)
         dst = self.get_root_path() + "/" + self.user_id + "/model/" + utils.generate_uuid
+        parent_dir = str(Path(dst).parent)
+        if not self.connection.exists(parent_dir):
+            self.connection.makedirs(parent_dir)
+        from sklearn.externals import joblib
+        import json
+        with self.connection.open(dst + "/" + "data", "wb") as writer:
+            joblib.dump(model, writer)
+        with self.connection.open(dst + "/" + "metadata", "wb") as writer:
+            json.dump(meta, writer)
 
+        from . import imysql
+        mysql_connection = imysql.MySQLConnection().connection
+        model_id = utils.generate_uuid()
+        resource_dir_id = utils.generate_uuid()
+        insert_dataset_statement = """
+                    INSERT INTO ABC_DATASET (MODEL_ID,WORKSPACE_ID,USER_ID,MODEL_NAME,MODEL_DESC,DEPLOY_ENGINE,MODEL_PATH,MODEL_TYPE,RESOURCE_DIR_ID,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,MODEL_METADATA)
+                    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+        try:
+            with mysql_connection.cursor() as cursor:
+                current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                row_count = cursor.execute(insert_dataset_statement,
+                                           [model_id, self.workspace_id, self.user_id, model_name, "", "",
+                                            dst, "1", resource_dir_id, "1", self.user_id, self.user_id,
+                                            current_time, current_time, current_time, current_time, json.dumps(meta)])
+            mysql_connection.commit()
+            if row_count > 0:
+                insert_resource_dir_statement = """
+                            INSERT INTO ABC_RESOURCE_DIR (ITEM_ID,WORKSPACE_ID,ITEM_NAME,ITEM_ORDER,PARENT_ID,ITEM_TYPE,IS_LEAF,RESOURCE_ID,IS_SYS,IS_READONLY,IS_DISPLAY,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,ITEM_DESC,USER_ID)
+                            values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                            """
+                try:
+                    with mysql_connection.cursor() as cursor:
+                        current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        row_count = cursor.execute(insert_resource_dir_statement,
+                                                   [utils.generate_uuid(), self.workspace_id, model_name, 1, "-1",
+                                                    "0", "1", model_id, "1", "1", "1", "1", self.user_id,
+                                                    self.user_id, current_time, current_time, current_time,
+                                                    current_time, "", self.user_id])
+                        mysql_connection.commit()
+                except Exception as e:
+                    print(e)
+        except Exception as e:
+            print(e)

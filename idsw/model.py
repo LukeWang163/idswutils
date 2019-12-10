@@ -34,11 +34,15 @@ class Model:
         return model
 
     def save_model(self, df, model, model_name):
-        try:
-            from sklearn.utils import estimator_checks
-            estimator_checks.check_estimator(model, generate_only=False)
-            self.connection.upload_model(df, model, model_name)
-            self.connection.disconnect()
-            print("saved successfully")
-        except TypeError as e:
-            print("given model is not a scikit-learn estimator, cannot save")
+        import pandas as pd
+        if not isinstance(df, pd.DataFrame):
+            print("Failed! Please provide a pandas DataFrame as the first parameter")
+        else:
+            try:
+                from sklearn.utils import estimator_checks
+                estimator_checks.check_estimator(model, generate_only=False)
+                self.connection.upload_model(df, model, model_name)
+                self.connection.disconnect()
+                print("saved successfully")
+            except TypeError as e:
+                print("Failed! Given model is not a scikit-learn estimator, cannot save")

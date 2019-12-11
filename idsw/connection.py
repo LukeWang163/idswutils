@@ -9,6 +9,7 @@
 class Connection:
     def __init__(self):
         self.connection = None
+        self.closed = True
 
     def connect(self, **kwargs):
         pass

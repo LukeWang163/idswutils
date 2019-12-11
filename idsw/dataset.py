@@ -25,24 +25,51 @@ class Dataset:
             self.connection = imysql.MySQLConnection()
 
     def read_csv(self, path):
+        if self.connection.closed:
+            self.__init__()
         df = pd.read_csv(self.connection.open_file(path), encoding='utf-8')
-        self.connection.disconnect()
-        print(df.head())
-        return df
+        if df is not None:
+            print(df.head())
+            self.connection.disconnect()
+            return df
+        else:
+            print("error reading dataset")
+            self.connection.disconnect()
+            return None
 
     def read_tsv(self, path):
-        df = pd.read_csv(self.connection.open_file(path), encoding='utf-8')
-        self.connection.disconnect()
-        print(df.head())
-        return df
+        if self.connection.closed:
+            self.__init__()
+        df = pd.read_csv(self.connection.open_file(path), sep="\t", encoding='utf-8')
+        if df is not None:
+            print(df.head())
+            self.connection.disconnect()
+            return df
+        else:
+            print("error reading dataset")
+            self.connection.disconnect()
+            return None
 
     def read_excel(self, path):
+        if self.connection.closed:
+            self.__init__()
         df = pd.read_excel(self.connection.open_file(path), encoding='utf-8')
-        self.connection.disconnect()
-        print(df.head())
-        return df
+        if df is not None:
+            print(df.head())
+            self.connection.disconnect()
+            return df
+        else:
+            print("error reading dataset")
+            self.connection.disconnect()
+            return None
 
     def save_dataset(self, df, dataset_name):
-        self.connection.upload_df(df, dataset_name)
+        if self.connection.closed:
+            self.__init__()
+        result = self.connection.upload_df(df, dataset_name)
+        if result is not None:
+            print("saved successfully")
+        else:
+            print("encountered error")
         self.connection.disconnect()
-        print("saved successfully")
+        # return result

@@ -30,10 +30,12 @@ class MySQLConnection(connection.Connection):
                                      user=config.get("mysql", "username"),
                                      password=config.get("mysql", "password"),
                                      db=config.get("mysql", "db"), **kwargs)
+        self.closed = False
         return connection
 
     def disconnect(self):
         self.connection.close()
+        self.closed = True
 
     def get_root_path(self):
         return "mysql"
@@ -56,24 +58,28 @@ class MySQLConnection(connection.Connection):
     def query_blob_to_bytes(self, table_name, id, column):
         query_statement = "SELECT " + column + " FROM " + table_name + " WHERE ID= %s"
         blob = None
+        from io import StringIO
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(query_statement, [id])
                 ret = cursor.fetchone()
                 blob = ret[0]
+                result = StringIO(str(blob, "utf-8"))
         except Exception as e:
             print(e)
-        from io import StringIO
-        return StringIO(str(blob, "utf-8"))
+            result = None
+        return result
 
     def upload_df(self, df, dataset_name):
         if not dataset_name.endswith(".csv"):
             dataset_name += ".csv"
         try:
             dataset_size = self._humanbytes(df.memory_usage(index=True).sum())
-            self.upload_local_csv(df, dataset_name, dataset_size)
+            result = self.upload_local_csv(df, dataset_name, dataset_size)
         except Exception as e:
             print(e)
+            result = None
+        return result
 
     def upload_local_csv(self, df, dataset_name="", dataset_size=""):
         dst = self.get_root_path() + "/" + self.user_id + "/dataset/" + utils.generate_uuid()
@@ -109,7 +115,7 @@ class MySQLConnection(connection.Connection):
                                                         self.user_id, current_time, current_time, current_time,
                                                         current_time, "", self.user_id])
                             self.connection.commit()
-                            return "success"
+                            return id
                     except Exception as e:
                         print(e)
                         return None
@@ -139,8 +145,8 @@ class MySQLConnection(connection.Connection):
 
     @staticmethod
     def _convert_to_binary_data(df):
-        from io import BytesIO
-        bytes_container = BytesIO()
+        from io import BytesIO, StringIO
+        bytes_container = StringIO()
         df.to_csv(bytes_container, index=False)
         bytes_container.seek(0)  # update to enable reading
         binary_data = bytes_container.read()

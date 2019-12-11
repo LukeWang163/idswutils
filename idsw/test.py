@@ -7,13 +7,13 @@
 from idsw import dataset
 from idsw import model
 import os
-os.environ["storage_type"] = "hdfs"
+os.environ["storage_type"] = "mysql"
 os.environ["user_id"] = "superadmin"
 os.environ["workspace_id"] = "a"
 
 def test_read_data():
     idataset = dataset.Dataset()
-    df = idataset.read_csv("/data/rapidminerTest/crf_train.csv")# zls_test_data/69b31a4ab1464b18a3dfa151212f4c49")
+    df = idataset.read_csv("zls_test_data/62755d401bc411eaa0c7f01898ece9c8")# zls_test_data/69b31a4ab1464b18a3dfa151212f4c49")
     print(df.size)
 
 
@@ -46,6 +46,6 @@ def test_load_model():
 
 if __name__ == "__main__":
     # test_read_data()
-    # test_write_data()
+    test_write_data()
     # test_write_model()
-    test_load_model()
+    # test_load_model()

@@ -45,11 +45,12 @@ class HDFSConnection(connection.Connection):
                 if user is None:
                     user = self.config.get("hdfs", "HDFS_USER")
                 connection = hdfs3.HDFileSystem(host=host, port=port, user=user)
-
+        self.closed = False
         return connection
     
     def disconnect(self):
         self.connection.disconnect()
+        self.closed = True
 
     def get_root_path(self):
         return self.config.get("hdfs", "HDFS_ROOT_PATH")

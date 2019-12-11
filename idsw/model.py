@@ -24,6 +24,8 @@ class Model:
             self.connection = imysql.MySQLConnection()
 
     def load_model(self, path):
+        if self.connection.closed:
+            self.__init__()
         try:
             model, meta = self.connection.open_model(path)
         except Exception as e:
@@ -35,6 +37,8 @@ class Model:
         return model, meta
 
     def save_model(self, df, model, model_name):
+        if self.connection.closed:
+            self.__init__()
         import pandas as pd
         if not isinstance(df, pd.DataFrame):
             print("Failed! Please provide a pandas DataFrame as the first parameter")

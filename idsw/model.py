@@ -44,8 +44,8 @@ class Model:
             print("Failed! Please provide a pandas DataFrame as the first parameter")
         else:
             try:
-                from sklearn.utils import estimator_checks
-                estimator_checks.check_estimator(model, generate_only=False)
+                from sklearn.utils.estimator_checks import check_estimator
+                check_estimator(model)
                 result = self.connection.upload_model(df, model, model_name)
                 if result is not None:
                     print("saved successfully")

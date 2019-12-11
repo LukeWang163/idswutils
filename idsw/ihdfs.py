@@ -141,10 +141,9 @@ class HDFSConnection(connection.Connection):
 
     def upload_model(self, df, model, model_name):
         meta = self._form_model_meta(df)
-        dst = self.get_root_path() + "/" + self.user_id + "/model/" + utils.generate_uuid
-        parent_dir = str(Path(dst).parent)
-        if not self.connection.exists(parent_dir):
-            self.connection.makedirs(parent_dir)
+        dst = self.get_root_path() + "/" + self.user_id + "/model/" + utils.generate_uuid()
+        if not self.connection.exists(dst):
+            self.connection.makedirs(dst)
         import joblib
         import json
         with self.connection.open(dst + "/" + "data", "wb") as writer:
@@ -156,14 +155,14 @@ class HDFSConnection(connection.Connection):
         mysql_connection = imysql.MySQLConnection().connection
         model_id = utils.generate_uuid()
         resource_dir_id = utils.generate_uuid()
-        insert_dataset_statement = """
-                    INSERT INTO ABC_DATASET (MODEL_ID,WORKSPACE_ID,USER_ID,MODEL_NAME,MODEL_DESC,DEPLOY_ENGINE,MODEL_PATH,MODEL_TYPE,RESOURCE_DIR_ID,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,MODEL_METADATA)
+        insert_model_statement = """
+                    INSERT INTO ABC_MODEL (MODEL_ID,WORKSPACE_ID,USER_ID,MODEL_NAME,MODEL_DESC,DEPLOY_ENGINE,MODEL_PATH,MODEL_TYPE,RESOURCE_DIR_ID,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,MODEL_METADATA)
                     values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                     """
         try:
             with mysql_connection.cursor() as cursor:
                 current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                row_count = cursor.execute(insert_dataset_statement,
+                row_count = cursor.execute(insert_model_statement,
                                            [model_id, self.workspace_id, self.user_id, model_name, "", "",
                                             dst, "1", resource_dir_id, "1", self.user_id, self.user_id,
                                             current_time, current_time, current_time, current_time, json.dumps(meta)])

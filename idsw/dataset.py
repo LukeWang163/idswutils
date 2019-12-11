@@ -25,19 +25,19 @@ class Dataset:
             self.connection = imysql.MySQLConnection()
 
     def read_csv(self, path):
-        df = pd.read_csv(self.connection.openFile(path), encoding='utf-8')
+        df = pd.read_csv(self.connection.open_file(path), encoding='utf-8')
         self.connection.disconnect()
         print(df.head())
         return df
 
     def read_tsv(self, path):
-        df = pd.read_csv(self.connection.openFile(path), encoding='utf-8')
+        df = pd.read_csv(self.connection.open_file(path), encoding='utf-8')
         self.connection.disconnect()
         print(df.head())
         return df
 
     def read_excel(self, path):
-        df = pd.read_excel(self.connection.openFile(path), encoding='utf-8')
+        df = pd.read_excel(self.connection.open_file(path), encoding='utf-8')
         self.connection.disconnect()
         print(df.head())
         return df

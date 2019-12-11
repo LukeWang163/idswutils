@@ -169,7 +169,7 @@ class MySQLConnection(connection.Connection):
 
         model_id = utils.generate_uuid()
         resource_dir_id = utils.generate_uuid()
-        insert_dataset_statement = """
+        insert_model_statement = """
                     INSERT INTO ABC_MODEL (MODEL_ID,WORKSPACE_ID,USER_ID,MODEL_NAME,MODEL_DESC,DEPLOY_ENGINE,MODEL_PATH,MODEL_TYPE,RESOURCE_DIR_ID,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,MODEL_METADATA)
                     values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                     """
@@ -177,9 +177,9 @@ class MySQLConnection(connection.Connection):
             with self.connection.cursor() as cursor:
                 import json
                 current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                row_count = cursor.execute(insert_dataset_statement,
-                                           [model_id, self.workspace_id, self.user_id, model_name, "", "", dst, "1",
-                                            resource_dir_id, "1", self.user_id, self.user_id, current_time,
+                row_count = cursor.execute(insert_model_statement,
+                                           [model_id, self.workspace_id, self.user_id, model_name, "", "", insert_path,
+                                            "1", resource_dir_id, "1", self.user_id, self.user_id, current_time,
                                             current_time, current_time, current_time, json.dumps(meta)])
             self.connection.commit()
             if row_count > 0:
@@ -237,8 +237,8 @@ class MySQLConnection(connection.Connection):
     def query_model_and_meta(self, table_name, id):
         import joblib
         import json
-        from io import StringIO
-        query_statement = "SELECT (DATA,META) FROM " + table_name + " WHERE ID= %s"
+        from io import BytesIO
+        query_statement = "SELECT `DATA`,`META` FROM " + table_name + " WHERE ID= %s"
         model = None
         meta = None
         try:
@@ -246,7 +246,7 @@ class MySQLConnection(connection.Connection):
                 cursor.execute(query_statement, [id])
                 ret = cursor.fetchone()
                 blob = ret[0]
-                model = joblib.load(StringIO(str(blob, "utf-8")))
+                model = joblib.load(BytesIO(blob))
                 meta = json.loads(ret[1])
         except Exception as e:
             print(e)

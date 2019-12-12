@@ -5,12 +5,10 @@
 # @File    : imysql.py
 # @Desc    : mysql connection
 from . import connection
-import configparser
 import os
 import pymysql
 from . import utils
 import datetime
-from pathlib2 import Path
 
 
 class MySQLConnection(connection.Connection):
@@ -23,14 +21,28 @@ class MySQLConnection(connection.Connection):
         self.model_table = "zls_test_model"
 
     def connect(self, **kwargs):
-        config = configparser.ConfigParser()
-        config.read(Path(os.path.realpath(__file__)).parent / "idsw-notebook.conf", encoding="utf-8")
-        connection = pymysql.connect(host=config.get("mysql", "host"),
-                                     port=int(config.get("mysql", "port")),
-                                     user=config.get("mysql", "username"),
-                                     password=config.get("mysql", "password"),
-                                     db=config.get("mysql", "db"), **kwargs)
-        self.closed = False
+        # config = configparser.ConfigParser()
+        # config.read(Path(os.path.realpath(__file__)).parent / "idsw-notebook.conf", encoding="utf-8")
+        connection_string = os.getenv("MYSQL_CONNECTION")
+        if connection_string is None:
+            raise RuntimeError("no proper database connection information provided")
+        url = utils.make_url(os.getenv("MYSQL_CONNECTION"))
+
+        try:
+            # connection = pymysql.connect(host=config.get("mysql", "host"),
+            #                              port=int(config.get("mysql", "port")),
+            #                              user=config.get("mysql", "username"),
+            #                              password=config.get("mysql", "password"),
+            #                              db=config.get("mysql", "db"), **kwargs)
+            connection = pymysql.connect(host=url.host,
+                                         port=int(url.port),
+                                         user=url.username,
+                                         password=url.password,
+                                         db=url.database, **kwargs)
+            self.closed = False
+        except Exception as e:
+            raise RuntimeError("no proper database connection information provided")
+
         return connection
 
     def disconnect(self):

@@ -16,34 +16,40 @@ import datetime
 class HDFSConnection(connection.Connection):
     def __init__(self):
         super().__init__()
-        self.config = configparser.ConfigParser()
-        self.config.read("idsw-notebook.conf", encoding="utf-8")
+        # self.config = configparser.ConfigParser()
+        # self.config.read("idsw-notebook.conf", encoding="utf-8")
         self.connection = self.connect()
         self.user_id = os.getenv("user_id")
         self.workspace_id = os.getenv("workspace_id")
 
     def connect(self, host=None, port=None, hdfs_ha_enable=None, user=None, kerberos=False):
         if host is None:
-            host = self.config.get("hdfs", "HDFS_HOST")
+            # host = self.config.get("hdfs", "HDFS_HOST")
+            host = os.getenv("HDFS_HOST")
         if hdfs_ha_enable is None:
-            hdfs_ha_enable = self.config.getboolean("hdfs", 'HDFS_HA_ENABLE')
+            # hdfs_ha_enable = self.config.getboolean("hdfs", 'HDFS_HA_ENABLE')
+            hdfs_ha_enable = True if os.getenv("HDFS_HA_ENABLE").lower() == "true" else False
         if hdfs_ha_enable:
-            kerberos = self.config.get("hdfs", "HDFS_KERBEROS")
+            # kerberos = self.config.get("hdfs", "HDFS_KERBEROS")
+            kerberos = True if os.getenv("HDFS_KERBEROS").lower() == "true" else False
             if kerberos:
                 connection = hdfs3.HDFileSystem(host=host, pars={"hadoop.security.authentication": "kerberos"})
             else:
                 if user is None:
-                    user = self.config.get("hdfs", "HDFS_USER")
+                    # user = self.config.get("hdfs", "HDFS_USER")
+                    user = os.getenv("HDFS_USER")
                 connection = hdfs3.HDFileSystem(host=host, user=user)
         else:
             if port is None:
-                port = self.config.getint("hdfs", "HDFS_PORT")
+                # port = self.config.getint("hdfs", "HDFS_PORT")
+                port = int(os.getenv("HDFS_PORT"))
             if kerberos:
                 connection = hdfs3.HDFileSystem(host=host, port=port,
                                                      pars={"hadoop.security.authentication": "kerberos"})
             else:
                 if user is None:
-                    user = self.config.get("hdfs", "HDFS_USER")
+                    # user = self.config.get("hdfs", "HDFS_USER")
+                    user = os.getenv("HDFS_USER")
                 connection = hdfs3.HDFileSystem(host=host, port=port, user=user)
         self.closed = False
         return connection
@@ -53,10 +59,18 @@ class HDFSConnection(connection.Connection):
         self.closed = True
 
     def get_root_path(self):
-        return self.config.get("hdfs", "HDFS_ROOT_PATH")
+        # return self.config.get("hdfs", "HDFS_ROOT_PATH")
+        if os.getenv("HDFS_ROOT_PATH") is None:
+            return "/idsw"
+        else:
+            return os.getenv("HDFS_ROOT_PATH")
 
     def get_internal_path(self):
-        return self.config.get("hdfs", "HDFS_ROOT_PATH")
+        # return self.config.get("hdfs", "HDFS_ROOT_PATH")
+        if os.getenv("HDFS_ROOT_PATH") is None:
+            return "/idsw"
+        else:
+            return os.getenv("HDFS_ROOT_PATH")
 
     def open_file(self, path):
         from io import StringIO

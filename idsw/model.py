@@ -12,9 +12,9 @@ from pathlib2 import Path
 
 class Model:
     def __init__(self):
-        config = configparser.ConfigParser()
-        config.read(Path(os.path.realpath(__file__)).parent / "idsw-notebook.conf", encoding="utf-8")
-        storage_type = os.getenv("storage_type")
+        # config = configparser.ConfigParser()
+        # config.read(Path(os.path.realpath(__file__)).parent / "idsw-notebook.conf", encoding="utf-8")
+        storage_type = os.getenv("STORAGE_TYPE")
         self.connection = None
         if storage_type.lower() == "hdfs":
             from . import ihdfs

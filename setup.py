@@ -9,5 +9,5 @@ setup(
    # package_data={"idsw": ["idsw-notebook.conf"]},
    # include_package_data=True,
    packages=['idsw'],  #same as name
-   install_requires=['pandas', 'scikit-learn', 'pymysql']
+   install_requires=['pandas', 'scikit-learn', 'pymysql', 'pathlib2']
 )

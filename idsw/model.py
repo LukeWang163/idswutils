@@ -6,8 +6,6 @@
 # @Desc    : model utils
 
 import os
-import configparser
-from pathlib2 import Path
 
 
 class Model:
@@ -24,6 +22,11 @@ class Model:
             self.connection = imysql.MySQLConnection()
 
     def load_model(self, path):
+        """
+        load sklearn model from inner storage saved from Notebook
+        @param path: path copied from Model module
+        @return: model and model meta
+        """
         if self.connection.closed:
             self.__init__()
         try:
@@ -37,6 +40,12 @@ class Model:
         return model, meta
 
     def save_model(self, df, model, model_name):
+        """
+        save sklearn model to inner storage and show in Model module
+        @param df: training DataFrame
+        @param model: sklearn model
+        @param model_name: name to show in Model module
+        """
         if self.connection.closed:
             self.__init__()
         import pandas as pd

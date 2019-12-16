@@ -8,7 +8,6 @@
 import os
 import configparser
 import pandas as pd
-from pathlib2 import Path
 
 
 class Dataset:
@@ -25,6 +24,11 @@ class Dataset:
             self.connection = imysql.MySQLConnection()
 
     def read_csv(self, path):
+        """
+        read csv from inner storage
+        @param path: path copied from Dataset module
+        @return: Pandas.DataFrame or None
+        """
         if self.connection.closed:
             self.__init__()
         df = pd.read_csv(self.connection.open_file(path), encoding='utf-8')
@@ -38,6 +42,11 @@ class Dataset:
             return None
 
     def read_tsv(self, path):
+        """
+        read tsv from inner storage
+        @param path: path copied from Dataset module
+        @return: Pandas.DataFrame or None
+        """
         if self.connection.closed:
             self.__init__()
         df = pd.read_csv(self.connection.open_file(path), sep="\t", encoding='utf-8')
@@ -51,6 +60,11 @@ class Dataset:
             return None
 
     def read_excel(self, path):
+        """
+        read excel from inner storage
+        @param path: path copied from Dataset module
+        @return: Pandas.DataFrame or None
+        """
         if self.connection.closed:
             self.__init__()
         df = pd.read_excel(self.connection.open_file(path), encoding='utf-8')
@@ -64,6 +78,11 @@ class Dataset:
             return None
 
     def save_dataset(self, df, dataset_name):
+        """
+        save Pandas.DataFrame to inner storage
+        @param df: Pandas.DataFrame dataframe to save
+        @param dataset_name: name to show in Dataset module
+        """
         if self.connection.closed:
             self.__init__()
         result = self.connection.upload_df(df, dataset_name)

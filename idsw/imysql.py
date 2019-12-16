@@ -25,7 +25,8 @@ class MySQLConnection(connection.Connection):
         # config.read(Path(os.path.realpath(__file__)).parent / "idsw-notebook.conf", encoding="utf-8")
         connection_string = os.getenv("MYSQL_CONNECTION")
         if connection_string is None:
-            raise RuntimeError("no proper database connection information provided")
+            raise RuntimeError(
+                "no proper database connection information provided")
         url = utils.make_url(os.getenv("MYSQL_CONNECTION"))
 
         try:
@@ -41,7 +42,8 @@ class MySQLConnection(connection.Connection):
                                          db=url.database, **kwargs)
             self.closed = False
         except Exception as e:
-            raise RuntimeError("no proper database connection information provided")
+            raise RuntimeError(
+                "no proper database connection information provided")
 
         return connection
 
@@ -94,7 +96,8 @@ class MySQLConnection(connection.Connection):
         return result
 
     def upload_local_csv(self, df, dataset_name="", dataset_size=""):
-        dst = self.get_root_path() + "/" + self.user_id + "/dataset/" + utils.generate_uuid()
+        dst = self.get_root_path() + "/" + self.user_id + \
+            "/dataset/" + utils.generate_uuid()
         temp = dst.split("/")
         table = self.data_table
         id = temp[-1]
@@ -140,10 +143,12 @@ class MySQLConnection(connection.Connection):
             return None
 
     def insert_file(self, df, table, id):
-        insert_statement = "INSERT INTO " + table + " (ID, DATA) values(%s, %s)"
+        insert_statement = "INSERT INTO " + \
+            table + " (ID, DATA) values(%s, %s)"
         try:
             with self.connection.cursor() as cursor:
-                row_count = cursor.execute(insert_statement, [id, self._convert_to_binary_data(df)])
+                row_count = cursor.execute(
+                    insert_statement, [id, self._convert_to_binary_data(df)])
                 self.connection.commit()
                 if row_count > 0:
                     record = table + "/" + id
@@ -152,7 +157,7 @@ class MySQLConnection(connection.Connection):
         except Exception as e:
             print(e)
             record = None
-        
+
         return record
 
     @staticmethod
@@ -176,7 +181,8 @@ class MySQLConnection(connection.Connection):
 
     def upload_model(self, df, model, model_name):
         meta = self._form_model_meta(df)
-        dst = self.get_root_path() + "/" + self.user_id + "/model/" + utils.generate_uuid()
+        dst = self.get_root_path() + "/" + self.user_id + \
+            "/model/" + utils.generate_uuid()
         temp = dst.split("/")
         table = self.model_table
         id = temp[-1]
@@ -224,7 +230,8 @@ class MySQLConnection(connection.Connection):
             return None
 
     def insert_model(self, model, meta, table, id):
-        insert_statement = "INSERT INTO " + table + " (ID, DATA, META) values(%s, %s, %s)"
+        insert_statement = "INSERT INTO " + table + \
+            " (ID, DATA, META) values(%s, %s, %s)"
         try:
             with self.connection.cursor() as cursor:
                 import json
@@ -238,7 +245,7 @@ class MySQLConnection(connection.Connection):
         except Exception as e:
             print(e)
             record = None
-        
+
         return record
 
     def open_model(self, path):

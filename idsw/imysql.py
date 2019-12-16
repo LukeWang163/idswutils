@@ -58,6 +58,11 @@ class MySQLConnection(connection.Connection):
         return "mysql"
 
     def open_file(self, path):
+        """
+        open file and read as StringIO on MySQL
+        @param path: data path
+        @return: StringIO
+        """
         temp = path.split("/")
         column = "data"
         table_name = self.data_table
@@ -70,6 +75,13 @@ class MySQLConnection(connection.Connection):
         return self.query_blob_to_bytes(table_name, id, column)
 
     def query_blob_to_bytes(self, table_name, id, column):
+        """
+        query blob column and transform to StringIO
+        @param table_name:
+        @param id:
+        @param column:
+        @return:
+        """
         query_statement = "SELECT " + column + " FROM " + table_name + " WHERE ID= %s"
         blob = None
         from io import StringIO
@@ -85,10 +97,19 @@ class MySQLConnection(connection.Connection):
         return result
 
     def upload_df(self, df, dataset_name):
+        """
+        upload local Pandas.DataFrame as csv file to MySQL and show in Dataset module
+        @param df: Pandas.DataFrame
+        @param dataset_name: name to show in Dataset module
+        @return: "success" or None
+        """
+
         if not dataset_name.endswith(".csv"):
             dataset_name += ".csv"
         try:
+            # estimate file size
             dataset_size = self._humanbytes(df.memory_usage(index=True).sum())
+            # determine file path
             result = self.upload_local_csv(df, dataset_name, dataset_size)
         except Exception as e:
             print(e)
@@ -96,13 +117,24 @@ class MySQLConnection(connection.Connection):
         return result
 
     def upload_local_csv(self, df, dataset_name="", dataset_size=""):
+        """
+        upload local Pandas.DataFrame as csv file to MySQL and show in Dataset module
+        @param df: Pandas.DataFrame
+        @param dataset_name: name to show in Dataset module
+        @param dataset_size: estimated data size
+        @return: id or None
+        """
+
+        # determine file path
         dst = self.get_root_path() + "/" + self.user_id + \
             "/dataset/" + utils.generate_uuid()
         temp = dst.split("/")
         table = self.data_table
         id = temp[-1]
+        # save as csv file to MySQL
         insert_path = self.insert_file(df, table, id)
         if insert_path is not None:
+            # insert a record to ABC_DATASET
             resource_id = utils.generate_uuid()
             insert_dataset_statement = """
             INSERT INTO ABC_DATASET (DATASET_ID,WORKSPACE_ID,USER_ID,DATASET_NAME,DATA_DESC,DATASET_TYPE,DATASET_SIZE,DATASET_PATH,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME)
@@ -117,6 +149,7 @@ class MySQLConnection(connection.Connection):
                                                 current_time, current_time, current_time])
                 self.connection.commit()
                 if row_count > 0:
+                    # insert a record to ABC_RESOURCE_DIR
                     insert_resource_dir_statement = """
                     INSERT INTO ABC_RESOURCE_DIR (ITEM_ID,WORKSPACE_ID,ITEM_NAME,ITEM_ORDER,PARENT_ID,ITEM_TYPE,IS_LEAF,RESOURCE_ID,IS_SYS,IS_READONLY,IS_DISPLAY,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,ITEM_DESC,USER_ID)
                     values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -180,12 +213,22 @@ class MySQLConnection(connection.Connection):
         return binary_data
 
     def upload_model(self, df, model, model_name):
+        """
+        save sklearn model to inner storage and show in Model module
+        @param df: training DataFrame
+        @param model: sklearn model
+        @param model_name: name to show in Model module
+        """
+
+        # form the model meta with provided training DataFrame
         meta = self._form_model_meta(df)
+        # determine save path
         dst = self.get_root_path() + "/" + self.user_id + \
             "/model/" + utils.generate_uuid()
         temp = dst.split("/")
         table = self.model_table
         id = temp[-1]
+        # save the model and meta
         insert_path = self.insert_model(model, meta, table, id)
 
         if insert_path is None:
@@ -193,6 +236,7 @@ class MySQLConnection(connection.Connection):
 
         model_id = utils.generate_uuid()
         resource_dir_id = utils.generate_uuid()
+        # insert a record to ABC_MODEL
         insert_model_statement = """
                     INSERT INTO ABC_MODEL (MODEL_ID,WORKSPACE_ID,USER_ID,MODEL_NAME,MODEL_DESC,DEPLOY_ENGINE,MODEL_PATH,MODEL_TYPE,RESOURCE_DIR_ID,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,MODEL_METADATA)
                     values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -207,6 +251,7 @@ class MySQLConnection(connection.Connection):
                                             current_time, current_time, current_time, json.dumps(meta)])
             self.connection.commit()
             if row_count > 0:
+                # insert a record to ABC_RESOURCE_DIR
                 insert_resource_dir_statement = """
                             INSERT INTO ABC_RESOURCE_DIR (ITEM_ID,WORKSPACE_ID,ITEM_NAME,ITEM_ORDER,PARENT_ID,ITEM_TYPE,IS_LEAF,RESOURCE_ID,IS_SYS,IS_READONLY,IS_DISPLAY,IS_ACTIVE,CREATOR,MODIFIER,CREATE_TIME,UPDATE_TIME,START_TIME,END_TIME,ITEM_DESC,USER_ID)
                             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -249,6 +294,11 @@ class MySQLConnection(connection.Connection):
         return record
 
     def open_model(self, path):
+        """
+        load a sklearn model from HDFS path
+        @param path: path copied from Model module
+        @return: model and meta
+        """
         temp = path.split("/")
         table_name = self.model_table
         id = temp[1]

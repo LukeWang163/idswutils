@@ -17,8 +17,8 @@ class MySQLConnection(connection.Connection):
         self.connection = self.connect()
         self.user_id = os.getenv("USER_ID")
         self.workspace_id = os.getenv("WORKSPACE_ID")
-        self.data_table = "zls_test_data"
-        self.model_table = "zls_test_model"
+        self.data_table = "ABC_STORE_DATA"
+        self.model_table = "ABC_STORE_MODEL"
 
     def connect(self, **kwargs):
         # config = configparser.ConfigParser()

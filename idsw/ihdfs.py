@@ -18,8 +18,8 @@ class HDFSConnection(connection.Connection):
         # self.config = configparser.ConfigParser()
         # self.config.read("idsw-notebook.conf", encoding="utf-8")
         self.connection = self.connect()
-        self.user_id = os.getenv("user_id")
-        self.workspace_id = os.getenv("workspace_id")
+        self.user_id = os.getenv("USER_ID")
+        self.workspace_id = os.getenv("WORKSPACE_ID")
 
     def connect(self, host=None, port=None, hdfs_ha_enable=None, user=None, kerberos=False):
         if host is None:

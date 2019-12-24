@@ -44,7 +44,7 @@ def test_load_model():
         print(modela.predict(X))
 
 def test_doc():
-    print(help(dataset))
+    print(help(model))
 
 if __name__ == "__main__":
     # test_read_data()

@@ -14,7 +14,7 @@ class Dataset:
     utils for connecting with Dataset module
     与平台数据集模块交互的工具类
     Example:
-        >>>import idsw.dataset
+        >>>import idsw
         >>>idataset = idsw.dataset.Dataset()
         >>>df = idataset.read_csv({{path}})
     """
@@ -33,7 +33,7 @@ class Dataset:
         read csv from inner storage
         从数据集模块读取csv类型数据集
         Example:
-            >>>import idsw.dataset
+            >>>import idsw
             >>>idataset = idsw.dataset.Dataset()
             >>>df = idataset.read_csv({{path}})
         @param path: path copied from Dataset module
@@ -56,7 +56,7 @@ class Dataset:
         read tsv from inner storage
         从数据集模块读取tsv类型数据集
         Example:
-            >>>import idsw.dataset
+            >>>import idsw
             >>>idataset = idsw.dataset.Dataset()
             >>>df = idataset.read_tsv({{path}})
         @param path: path copied from Dataset module
@@ -79,7 +79,7 @@ class Dataset:
         read excel from inner storage
         从数据集模块读取csv类型数据集
         Example:
-            >>>import idsw.dataset
+            >>>import idsw
             >>>idataset = idsw.dataset.Dataset()
             >>>df = idataset.read_excel({{path}})
         @param path: path copied from Dataset module
@@ -102,7 +102,7 @@ class Dataset:
         save Pandas.DataFrame to inner storage
         将Pandas.DataFrame以csv格式存储到数据集模块
         Example:
-            >>>import idsw.dataset
+            >>>import idsw
             >>>import pandas as pd
             >>>idataset = idsw.dataset.Dataset()
             >>>df = pd.DataFrame({'col1': [1, 2], 'col2': [3, 4]})

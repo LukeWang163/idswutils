@@ -13,7 +13,7 @@ class Model:
     utils for connecting with Model module
     与平台模型模块交互的工具类
     Example:
-        >>>import idsw.model
+        >>>import idsw
         >>>imodel = idsw.model.Model()
         >>>mymodel, model_meta = imodel.load_model("{{path}}")
     """
@@ -32,7 +32,7 @@ class Model:
         save Scikit-Learn model to inner storage and show in Model module
         将Notebook中训练的Scikit-Learn模型保存到模型模块，需提供训练集的Pandas.DataFrame以保存元数据
         Example:
-            >>>import idsw.model
+            >>>import idsw
             >>>imodel = idsw.model.Model()
             >>>imodel.save_model(df, cls, "sample_model", "sample_model_description")
         @param df: training DataFrame
@@ -62,7 +62,7 @@ class Model:
         load Scikit-Learn model from inner storage saved from Notebook
         从模型模块加载Scikit-Learn模型
         Example:
-            >>>import idsw.model
+            >>>import idsw
             >>>imodel = idsw.model.Model()
             >>>mymodel, model_meta = imodel.load_model("{{path}}")
         @param path: path copied from Model module

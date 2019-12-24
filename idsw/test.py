@@ -43,9 +43,12 @@ def test_load_model():
     if modela is not None:
         print(modela.predict(X))
 
+def test_doc():
+    print(help(dataset))
 
 if __name__ == "__main__":
     # test_read_data()
-    test_write_data()
+    # test_write_data()
     # test_write_model()
     # test_load_model()
+    test_doc()

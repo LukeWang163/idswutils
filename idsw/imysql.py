@@ -96,11 +96,12 @@ class MySQLConnection(connection.Connection):
             result = None
         return result
 
-    def upload_df(self, df, dataset_name):
+    def upload_df(self, df, dataset_name, dataset_desc):
         """
         upload local Pandas.DataFrame as csv file to MySQL and show in Dataset module
         @param df: Pandas.DataFrame
         @param dataset_name: name to show in Dataset module
+        @param dataset_desc: description to show in Dataset module
         @return: "success" or None
         """
 
@@ -110,17 +111,18 @@ class MySQLConnection(connection.Connection):
             # estimate file size
             dataset_size = self._humanbytes(df.memory_usage(index=True).sum())
             # determine file path
-            result = self.upload_local_csv(df, dataset_name, dataset_size)
+            result = self.upload_local_csv(df, dataset_name, dataset_desc, dataset_size)
         except Exception as e:
             print(e)
             result = None
         return result
 
-    def upload_local_csv(self, df, dataset_name="", dataset_size=""):
+    def upload_local_csv(self, df, dataset_name="", dataset_desc="", dataset_size=""):
         """
         upload local Pandas.DataFrame as csv file to MySQL and show in Dataset module
         @param df: Pandas.DataFrame
         @param dataset_name: name to show in Dataset module
+        @param dataset_desc: description to show in Dataset module
         @param dataset_size: estimated data size
         @return: id or None
         """
@@ -144,7 +146,7 @@ class MySQLConnection(connection.Connection):
                 with self.connection.cursor() as cursor:
                     current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     row_count = cursor.execute(insert_dataset_statement,
-                                               [resource_id, self.workspace_id, self.user_id, dataset_name, "", "csv",
+                                               [resource_id, self.workspace_id, self.user_id, dataset_name, dataset_desc, "csv",
                                                 dataset_size, insert_path, "1", self.user_id, self.user_id, current_time,
                                                 current_time, current_time, current_time])
                 self.connection.commit()
@@ -212,12 +214,13 @@ class MySQLConnection(connection.Connection):
         binary_data = bytes_container.read()
         return binary_data
 
-    def upload_model(self, df, model, model_name):
+    def upload_model(self, df, model, model_name, model_desc):
         """
         save sklearn model to inner storage and show in Model module
         @param df: training DataFrame
         @param model: sklearn model
         @param model_name: name to show in Model module
+        @param model_desc: model description shown in Model module
         """
 
         # form the model meta with provided training DataFrame
@@ -246,7 +249,7 @@ class MySQLConnection(connection.Connection):
                 import json
                 current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 row_count = cursor.execute(insert_model_statement,
-                                           [model_id, self.workspace_id, self.user_id, model_name, "", "", insert_path,
+                                           [model_id, self.workspace_id, self.user_id, model_name, model_desc, "", insert_path,
                                             "1", resource_dir_id, "1", self.user_id, self.user_id, current_time,
                                             current_time, current_time, current_time, json.dumps(meta)])
             self.connection.commit()

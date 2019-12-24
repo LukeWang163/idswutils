@@ -26,13 +26,13 @@ class Connection:
     def open_file(self, path):
         pass
 
-    def upload_df(self, df, dataset_name):
+    def upload_df(self, df, dataset_name, dataset_desc):
         pass
 
     def open_model(self, path):
         pass
 
-    def upload_model(self, df, model, model_name):
+    def upload_model(self, df, model, model_name, model_desc):
         pass
 
     def _humanbytes(self, B):

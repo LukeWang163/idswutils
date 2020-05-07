@@ -21,9 +21,9 @@ class Dataset:
     def __init__(self):
         storage_type = os.getenv("STORAGE_TYPE")
         self.connection = None
-        if storage_type.lower() == "hdfs":
-            from . import ihdfs
-            self.connection = ihdfs.HDFSConnection()
+        if storage_type.lower() == "minio":
+            from . import iminio
+            self.connection = iminio.MinIOConnection()
         elif storage_type.lower() == "mysql":
             from . import imysql
             self.connection = imysql.MySQLConnection()
